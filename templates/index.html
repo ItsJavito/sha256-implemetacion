@@ -1,19 +1,99 @@
+<!DOCTYPE html>
+<html>
 <head>
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-
+    <title>Subir archivos con Flask y Bootstrap</title>
+    <!-- Importar los archivos CSS de Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 100px;
+        }
+        .hash-section,
+        .check-section {
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .hash-section h2,
+        .check-section h2 {
+            margin-bottom: 20px;
+        }
+        .hash-section p {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .check-section .alert {
+            margin-top: 20px;
+        }
+    </style>
+</head>
 <body>
-    <div class="App">
-        <header class="App-header">
-            <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
-            <p>
-                GitHub Codespaces <span class="heart">♥️</span> Flask
-            </p>
-            <p class="small">
-                Edit <code>templates/index.html</code> and refresh to see your changes!
-            </p>
-        </header>
+    <div class="container-fluid p-4">
+        <h1 class="text-center m-3">Implementación SHA256</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="hash-section">
+                    <h1>Obtener Hash SHA256 del archivo</h1>
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="file">Seleccionar archivo:</label>
+                            <input type="file" name="file" class="form-control-file">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Subir archivo</button>
+                    </form>
+                    <h2>Hash del archivo:</h2>
+                    {% if hash_value %}
+                    <p class="border border-1 ">{{ hash_value }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="check-section">
+                    <h1>Comprobar integridad:</h1>
+                    <form method="POST" action="/check-integrity">
+                        <div class="form-group">
+                            <label for="file">Seleccionar archivo:</label>
+                            <input type="file" name="file" class="form-control-file">
+                        </div>
+                        <div class="form-group">
+                            <label for="hash">Ingresar hash:</label>
+                            <input type="text" name="hash" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Comprobar</button>
+                        <div class="alert alert-success" id="result" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('form[action="/check-integrity"]').submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: new FormData(this),
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function(data) {
+                        $('#result').removeClass('alert-danger').addClass('alert-success').text(data.message).show();
+                    },
+                    error: function(xhr, status, error) {
+                        $('#result').removeClass('alert-success').addClass('alert-danger').text(xhr.responseText).show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
 </html>
