@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, jsonify
 import hashlib
+import time
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
@@ -26,6 +27,29 @@ def check_integrity():
         else:
             return jsonify({'message': 'El archivo ha sido modificado.'})
     return jsonify({'message': 'No se ha proporcionado un archivo.'})
+@app.route('/generate-collision', methods=['POST'])
+def generate_collision():
+    start_time = time.time()
+    mensaje = find_collision(start_time)
+    return jsonify({'message': mensaje})
+
+def find_collision(start_time):
+    file = request.files['file']
+    if file:
+        content = file.read()
+        hash1 = hashlib.sha256(content).hexdigest()
+    else:
+        return jsonify({'message': 'no se ha proporcionado un archivo.'})
+    message2 = b'Alianza Lima'
+    hash2 = hashlib.sha256(message2).hexdigest()
+    while hash1 != hash2:
+        message2 = bytes([((x + 1) % 256) for x in message2]) # Cambiar el mensaje ligeramente
+        hash2 = hashlib.sha256(message2).hexdigest()
+        #hasta un minuto buscando una colisión
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 60:
+            return "Colisión no encontrada."
+    return "Colisión encontrada."
 
 if __name__ == '__main__':
     app.run(debug=True)

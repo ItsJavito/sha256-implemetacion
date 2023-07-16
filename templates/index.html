@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Subir archivos con Flask y Bootstrap</title>
+    <title>SSTI Implementación HASH Grupo 3</title>
     <!-- Importar los archivos CSS de Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
@@ -12,21 +12,30 @@
             margin-top: 100px;
         }
         .hash-section,
-        .check-section {
+        .check-section,
+        .colission-section {
             background-color: #ffffff;
             border-radius: 5px;
             box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
         }
         .hash-section h2,
-        .check-section h2 {
+        .check-section h2,
+        .colission-section h2 {
             margin-bottom: 20px;
         }
         .hash-section p {
             font-size: 18px;
             font-weight: bold;
         }
-        .check-section .alert {
+        .check-section .alert 
+        .colission-section .alert {
+            margin-top: 20px;
+        }
+        .collision-section .timer {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
             margin-top: 20px;
         }
     </style>
@@ -69,11 +78,30 @@
                 </div>
             </div>
         </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="colission-section">
+                    <h2>Generar colisión:</h2>
+                    <form method="POST" action="/generate-collision">
+                        <div class="form-group">
+                            <p>Busca por 1 minuto la colisión</p>
+                            <label for="file">Seleccionar archivo:</label>
+                            <input type="file" name="file" class="form-control-file">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generar</button>
+                        <div class="alert" id="collision-result" style="display: none;"></div>
+                        <div class="timer" id="collision-timer"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            var collisionTimer;
+
             $('form[action="/check-integrity"]').submit(function(e) {
                 e.preventDefault();
                 var form = $(this);
@@ -86,10 +114,53 @@
                     cache: false,
                     processData: false,
                     success: function(data) {
-                        $('#result').removeClass('alert-danger').addClass('alert-success').text(data.message).show();
+                        if (data.message === 'El archivo ha sido modificado.') {
+                            $('#result').removeClass('alert-success').addClass('alert alert-danger').text(data.message).show();
+                        } else {
+                            $('#result').removeClass('alert-danger').addClass('alert-success').text(data.message).show();
+                        };
                     },
                     error: function(xhr, status, error) {
                         $('#result').removeClass('alert-success').addClass('alert-danger').text(xhr.responseText).show();
+                    }
+                });
+            });
+            
+            $('form[action="/generate-collision"]').submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var timerElement = $('#collision-timer');
+                var resultElement = $('#collision-result');
+
+                // Reset the timer and result
+                timerElement.text('');
+                resultElement.removeClass('alert-success alert-danger').text('').hide();
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: new FormData(this),
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    beforeSend: function() {
+                        var startTime = new Date().getTime();
+                        collisionTimer = setInterval(function() {
+                            var currentTime = new Date().getTime();
+                            var elapsedTime = (currentTime - startTime) / 1000;
+                            timerElement.text('Tiempo transcurrido: ' + elapsedTime.toFixed(2) + ' segundos');
+                        }, 10);
+                    },
+                    success: function(data) {
+                        clearInterval(collisionTimer);
+                        timerElement.text('');
+                        resultElement.addClass('alert-success').text(data.message).show();
+                    },
+                    error: function(xhr, status, error) {
+                        clearInterval(collisionTimer);
+                        timerElement.text('');
+                        resultElement.addClass('alert-danger').text(xhr.responseText).show();
                     }
                 });
             });
