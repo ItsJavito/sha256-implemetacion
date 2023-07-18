@@ -1,13 +1,28 @@
-# GitHub Codespaces ♥️ Flask
+# Implementación HASH SHA256 SSTI Universidad de Lima 2023-1
 
-Welcome to your shiny new Codespace running Flask! We've got everything fired up and running for you to explore Flask.
+Implementación de algoritmo hash SHA256 utilizando algoritmo desarrollado desde 0 
+desarrollado en flask. 
 
-You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
+## Requerimientos
 
-Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
+- Instalación de Flask.
 
-To run this application:
+   ```cmd
+   pip install flask
+   ```
 
-```
-flask --debug run
-```
+## Instalación
+
+1. Descargar repositorio
+2. Instalar librerías
+   ```cmd
+   pip install -r requirements.txt
+   ```
+3. Ejecutar programa
+   ```cmd
+   flask --debug run
+   ```
+
+## Licencia
+
+[MIT](LICENSE) © [ItsJavito](https://github.com/ItsJavito).
