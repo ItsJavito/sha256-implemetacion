@@ -18,22 +18,20 @@ def generate_hash(message: bytearray) -> bytearray:
     elif not isinstance(message, bytearray):
         raise TypeError
 
-    # Padding
-    length = len(message) * 8 # len(message) is number of BYTES!!!
+    length = len(message) * 8 
     message.append(0x80)
     while (len(message) * 8 + 64) % 512 != 0:
         message.append(0x00)
 
-    message += length.to_bytes(8, 'big') # pad to 8 bytes or 64 bits
+    message += length.to_bytes(8, 'big') 
 
     assert (len(message) * 8) % 512 == 0, "Padding did not complete properly!"
 
-    # Parsing
-    blocks = [] # contains 512-bit chunks of message
-    for i in range(0, len(message), 64): # 64 bytes is 512 bits
+    blocks = [] # separamos por bloques
+    for i in range(0, len(message), 64): 
         blocks.append(message[i:i+64])
 
-    # Setting Initial Hash Value
+    # Inicializamos valores para el calculos de hash
     h0 = 0x6a09e667
     h1 = 0xbb67ae85
     h2 = 0x3c6ef372
@@ -43,15 +41,12 @@ def generate_hash(message: bytearray) -> bytearray:
     h6 = 0x1f83d9ab
     h7 = 0x5be0cd19
 
-    # SHA-256 Hash Computation
+    # Computación de HASH SHA256 
     for message_block in blocks:
-        # Prepare message schedule
+        # preparamos el calendario de mensajes 
         message_schedule = []
         for t in range(0, 64):
             if t <= 15:
-                # adds the t'th 32 bit word of the block,
-                # starting from leftmost word
-                # 4 bytes at a time
                 message_schedule.append(bytes(message_block[t*4:(t*4)+4]))
             else:
                 term1 = _sigma1(int.from_bytes(message_schedule[t-2], 'big'))
@@ -59,13 +54,13 @@ def generate_hash(message: bytearray) -> bytearray:
                 term3 = _sigma0(int.from_bytes(message_schedule[t-15], 'big'))
                 term4 = int.from_bytes(message_schedule[t-16], 'big')
 
-                # append a 4-byte byte object
+                # aniadimos un objeto de 4 bytes 
                 schedule = ((term1 + term2 + term3 + term4) % 2**32).to_bytes(4, 'big')
                 message_schedule.append(schedule)
 
         assert len(message_schedule) == 64
 
-        # Initialize working variables
+        # inicialimos las variables con las que vamos a trabjar
         a = h0
         b = h1
         c = h2
@@ -75,7 +70,7 @@ def generate_hash(message: bytearray) -> bytearray:
         g = h6
         h = h7
 
-        # Iterate for t=0 to 63
+        # Calculamos desde 0 hasta 63 es decir 64 iteraciones
         for t in range(64):
             t1 = ((h + _capsigma1(e) + _ch(e, f, g) + K[t] +
                    int.from_bytes(message_schedule[t], 'big')) % 2**32)
@@ -91,7 +86,7 @@ def generate_hash(message: bytearray) -> bytearray:
             b = a
             a = (t1 + t2) % 2**32
 
-        # Compute intermediate hash value
+        # Calculamos los valores de hash
         h0 = (h0 + a) % 2**32
         h1 = (h1 + b) % 2**32
         h2 = (h2 + c) % 2**32
@@ -107,39 +102,33 @@ def generate_hash(message: bytearray) -> bytearray:
             (h6).to_bytes(4, 'big') + (h7).to_bytes(4, 'big'))
 
 def _sigma0(num: int):
-    """As defined in the specification."""
     num = (_rotate_right(num, 7) ^
            _rotate_right(num, 18) ^
            (num >> 3))
     return num
 
 def _sigma1(num: int):
-    """As defined in the specification."""
     num = (_rotate_right(num, 17) ^
            _rotate_right(num, 19) ^
            (num >> 10))
     return num
 
 def _capsigma0(num: int):
-    """As defined in the specification."""
     num = (_rotate_right(num, 2) ^
            _rotate_right(num, 13) ^
            _rotate_right(num, 22))
     return num
 
 def _capsigma1(num: int):
-    """As defined in the specification."""
     num = (_rotate_right(num, 6) ^
            _rotate_right(num, 11) ^
            _rotate_right(num, 25))
     return num
 
 def _ch(x: int, y: int, z: int):
-    """As defined in the specification."""
     return (x & y) ^ (~x & z)
 
 def _maj(x: int, y: int, z: int):
-    """As defined in the specification."""
     return (x & y) ^ (x & z) ^ (y & z)
 
 def _rotate_right(num: int, shift: int, size: int = 32):
